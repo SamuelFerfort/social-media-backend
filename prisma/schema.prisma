@@ -12,3 +12,157 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+
+model User {
+  id  String @id @default(uuid())
+  email String @unique
+  username String 
+  handler String @unique
+  about String?
+  avatar String?
+  avatarPublicId String?
+  createdAt DateTime @default(now())
+  posts Post[]
+  followers Follows[] @relation("following")
+  following Follows[] @relation("followers")
+  likes Like[]
+  resposts Repost[]
+  bookmarks Bookmark[]
+  notifications Notification[]
+  sentMessages     Message[]     @relation("SentMessages")
+  receivedMessages Message[]     @relation("ReceivedMessages")
+
+
+  @@index([username])
+  @@index([handler])
+}
+
+model Post {
+  id String @id @default(uuid())
+  content String?
+  media Media[]
+  author User @relation(references: [id], fields: [authorId])
+  authorId  String
+  likes Like[] 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reposts Repost[]
+  parentId String?
+  parent Post? @relation("Replies", fields: [parentId], references: [id])
+  replies Post[] @relation("Replies")
+  bookmarks Bookmark[]
+
+
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+
+
+model Follows {
+  follower User @relation("followers", fields: [followerId], references: [id])
+  followerId String
+  following User @relation("following", fields: [followingId], references: [id])
+  followingId String
+
+  @@id([followerId, followingId])
+
+}
+
+
+model Like {
+  user User @relation(fields: [userId], references: [id])
+  userId String
+  post Post @relation(fields: [postId], references: [id])
+  postId String
+
+  @@id([userId, postId])
+
+}
+
+model Repost {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+}
+
+
+model Bookmark {
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+  createdAt DateTime @default(now())
+
+  @@id([userId, postId])
+}
+
+
+
+
+model Media {
+  id String @id @default(uuid())
+  url String
+  type MediaType
+  post Post @relation(fields: [postId], references: [id])
+  postId String
+  createdAt DateTime @default(now())
+  urlPublicId String
+
+}
+
+
+
+
+model Notification {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  type NotificationType
+  content String
+  isRead Boolean @default(false)
+  createdAt DateTime @default(now())
+  relatedUserId String?
+  postId String?
+
+  @@index([userId])
+  @@index([createdAt]) 
+}
+
+
+enum MediaType {
+  IMAGE
+  VIDEO 
+  GIF
+}
+
+enum NotificationType {
+  LIKE
+  REPOST 
+  FOLLOW 
+  REPLY
+}
+
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id])
+  senderId  String
+  recipient User     @relation("ReceivedMessages", fields: [recipientId], references: [id])
+  recipientId String
+  createdAt DateTime @default(now())
+  isRead    Boolean  @default(false)
+
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([createdAt])
+}
+
