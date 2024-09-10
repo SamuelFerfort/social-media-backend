@@ -1,4 +1,4 @@
-const fileSizeLimit = (req, res, next) => {
+export default  fileSizeLimit = (req, res, next) => {
     const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3 MB
   
     if (req.file && req.file.size > MAX_FILE_SIZE) {
@@ -10,4 +10,3 @@ const fileSizeLimit = (req, res, next) => {
   };
   
   
-  module.exports = fileSizeLimit
