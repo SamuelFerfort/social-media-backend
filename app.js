@@ -2,6 +2,8 @@ import express from "express";
 import logger from "morgan";
 import "dotenv/config";
 import cors from "cors";
+import authRouter from "./routes/authRouter";
+import postsRouter from "./routes/postsRouter"
 
 const app = express();
 
@@ -16,7 +18,9 @@ app.use(
   })
 );
 
-app.get("/", (req, res) => res.send("Hello, world"));
+app.use("/auth", authRouter);
+app.use("/post", postsRouter);
+
 
 const PORT = process.env.PORT || "3000";
 

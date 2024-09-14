@@ -23,7 +23,7 @@ export const login = async (req, res, next) => {
   const { error } = loginSchema.validate(req.body);
   if (error) return res.status(400).json({ message: error.details[0].message });
 
-  c
+  
 
   try {
     const user = await prisma.user.findUnique({ where: { email } });
@@ -43,7 +43,7 @@ export const login = async (req, res, next) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
-
+          
     res.json({ token });
   } catch (err) {
     console.error("Error logging in the user:", err);
@@ -64,7 +64,7 @@ export const register = async (req, res, next) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
-    const user = await prisma.user.create({
+     await prisma.user.create({
       data: {
         email,
         username,
