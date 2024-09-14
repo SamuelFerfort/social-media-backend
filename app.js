@@ -28,8 +28,8 @@ const limiter = rateLimit({
 });
 app.use("/api", limiter);
 
-import authRouter from "./routes/authRouter";
-import postsRouter from "./routes/postsRouter";
+import authRouter from "./routes/authRouter.js";
+import postsRouter from "./routes/postsRouter.js";
 
 app.use("/api/auth", authRouter);
 app.use("/api/post", postsRouter);

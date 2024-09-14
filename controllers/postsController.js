@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
-import fileSizeLimit from "../middleware/fileSizeLimit";
+import fileSizeLimit from "../middleware/fileSizeLimit.js";
 import multer from "multer";
-import cloudinary from "../config/cloudinary";
+import cloudinary from "../config/cloudinary.js";
 
 const storage = multer.memoryStorage();
 
@@ -9,8 +9,36 @@ const upload = multer({ storage });
 
 const prisma = new PrismaClient();
 
+export const getPosts = async (req, res) => {
+  try {
+    const posts = await prisma.post.findMany({
+      orderBy: {
+        createdAt: "desc", // Newest first
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            avatar: true,
+          },
+        },
+        media: true,
+        _count: {
+          select: {
+            likes: true,
+            replies: true,
+          },
+        },
+      },
+    });
 
-
+    res.json(posts);
+  } catch (err) {
+    console.error("Error getting posts", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 export const createPost = [
   upload.single("image"),
