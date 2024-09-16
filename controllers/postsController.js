@@ -13,7 +13,7 @@ export const getPosts = async (req, res) => {
   try {
     const posts = await prisma.post.findMany({
       orderBy: {
-        createdAt: "desc", // Newest first
+        createdAt: "desc",
       },
       include: {
         author: {
