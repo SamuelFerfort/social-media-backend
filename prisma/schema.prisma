@@ -20,6 +20,7 @@ model User {
   email String @unique
   username String 
   handler String @unique
+  password String
   about String?
   avatar String?
   avatarPublicId String?

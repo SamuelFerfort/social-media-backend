@@ -2,6 +2,7 @@ import "dotenv/config";
 import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client";
 import Joi from "joi";
+import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 
@@ -10,12 +11,12 @@ const registerSchema = Joi.object({
     .email()
     .required()
     .external(async (value, helpers) => {
-      const emailExists = prisma.user.findFirst({ where: { email: value } });
+      const emailExists = await prisma.user.findFirst({
+        where: { email: value },
+      });
 
       if (emailExists) {
-        return helpers.error("email.unique", {
-          message: "Email already in use",
-        });
+        return helpers.error("email.unique");
       }
       return value;
     }),
@@ -30,13 +31,14 @@ const registerSchema = Joi.object({
       });
 
       if (handlerExists) {
-        return helpers.error("handler.unique", {
-          message: "This handler is already in use",
-        });
+        return helpers.error("handler.unique");
       }
 
       return value;
     }),
+}).messages({
+  "email.unique": "Email already in use",
+  "handler.unique": "This handler is already in use",
 });
 
 const loginSchema = Joi.object({
@@ -70,9 +72,10 @@ export const login = async (req, res) => {
       expiresIn: "24h",
     });
 
-    res.json({ token });
+    res.json({ token, user: payload });
   } catch (error) {
     if (error.isJoi) {
+      console.error("Joi error:", error.details[0].message);
       return res.status(400).json({ message: error.details[0].message });
     }
     console.error("Error logging in the user:", error);
