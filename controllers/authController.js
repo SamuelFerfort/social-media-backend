@@ -6,27 +6,57 @@ import Joi from "joi";
 const prisma = new PrismaClient();
 
 const registerSchema = Joi.object({
-  email: Joi.string().email().required(),
+  email: Joi.string()
+    .email()
+    .required()
+    .external(async (value, helpers) => {
+      const emailExists = prisma.user.findFirst({ where: { email: value } });
+
+      if (emailExists) {
+        return helpers.error("email.unique", {
+          message: "Email already in use",
+        });
+      }
+      return value;
+    }),
   password: Joi.string().min(8).required(),
   username: Joi.string().required().max(15),
-  handler: Joi.string().required(),
+  handler: Joi.string()
+    .required()
+    .pattern(/@/)
+    .external(async (value, helpers) => {
+      const handlerExists = await prisma.user.findFirst({
+        where: { handler: value },
+      });
+
+      if (handlerExists) {
+        return helpers.error("handler.unique", {
+          message: "This handler is already in use",
+        });
+      }
+
+      return value;
+    }),
 });
 
 const loginSchema = Joi.object({
   email: Joi.string().email().required(),
-  password: Joi.string().required(),
+  password: Joi.string().required().min(8),
 });
 
-export const login = async (req, res, next) => {
-  const { error } = loginSchema.validate(req.body);
-  if (error) return res.status(400).json({ message: error.details[0].message });
-
+export const login = async (req, res) => {
   try {
+    const { email, password } = await loginSchema.validateAsync(req.body);
+
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return res.status(401).json({ message: "Email does not exist" });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: "Wrong Password" });
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
 
     const payload = {
       id: user.id,
@@ -41,36 +71,37 @@ export const login = async (req, res, next) => {
     });
 
     res.json({ token });
-  } catch (err) {
-    console.error("Error logging in the user:", err);
+  } catch (error) {
+    if (error.isJoi) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+    console.error("Error logging in the user:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
 export const register = async (req, res, next) => {
-  const { error } = registerSchema.validate(req.body);
-  const { email, password, username, handler } = req.body;
-
-  if (error) return res.status(400).json({ message: error.details[0].message });
-
-  const emailExists = await prisma.user.findUnique({ where: { email } });
-  if (emailExists)
-    return res.status(400).json({ message: "Email already in use" });
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
   try {
+    const { email, password, username, handler } =
+      await registerSchema.validateAsync(req.body);
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     await prisma.user.create({
       data: {
         email,
         username,
         password: hashedPassword,
+        handler,
       },
     });
 
     res.status(201).json({ success: true });
-  } catch (err) {
-    console.error("Error registering the user:", err);
+  } catch (error) {
+    if (error.isJoi) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+    console.error("Error registering the user:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
