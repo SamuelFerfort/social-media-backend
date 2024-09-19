@@ -9,18 +9,28 @@ const upload = multer({ storage });
 
 const prisma = new PrismaClient();
 
-export const getPosts = async (req, res) => {
+export const getHomePosts = async (req, res) => {
+  const { page = 1, limit = 20, userId } = req.query;
+  const skip = (page - 1) * limit;
+
   try {
     const posts = await prisma.post.findMany({
+      where: {
+        parentId: null,
+        authorId: userId ? userId : undefined, //User filter for profile posts
+      },
       orderBy: {
         createdAt: "desc",
       },
+      take: Number(limit),
+      skip,
       include: {
         author: {
           select: {
             id: true,
             username: true,
             avatar: true,
+            handler: true
           },
         },
         media: true,
@@ -33,9 +43,15 @@ export const getPosts = async (req, res) => {
       },
     });
 
-    res.json(posts);
+    const total = await prisma.post.count({ where: { parentId: null } });
+
+    res.json({
+      posts,
+      totalPages: Math.ceil(total / limit),
+      currentPage: Number(page),
+    });
   } catch (err) {
-    console.error("Error getting posts", err);
+    console.error("Error getting home posts", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
