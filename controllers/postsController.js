@@ -30,7 +30,7 @@ export const getHomePosts = async (req, res) => {
             id: true,
             username: true,
             avatar: true,
-            handler: true
+            handler: true,
           },
         },
         media: true,
@@ -38,6 +38,32 @@ export const getHomePosts = async (req, res) => {
           select: {
             likes: true,
             replies: true,
+            reposts: true,
+            bookmarks: true,
+          },
+        },
+        likes: {
+          where: {
+            userId: req.user.id,
+          },
+          select: {
+            userId: true,
+          },
+        },
+        reposts: {
+          where: {
+            userId: req.user.id,
+          },
+          select: {
+            userId: true,
+          },
+        },
+        bookmarks: {
+          where: {
+            userId: req.user.id,
+          },
+          select: {
+            userId: true,
           },
         },
       },
@@ -115,3 +141,127 @@ export const createPost = [
     }
   },
 ];
+
+export const likePost = async (req, res, next) => {
+  const { postId } = req.params;
+  const userId = req.user.id;
+
+  try {
+    await prisma.$transaction(async (prisma) => {
+      const like = await prisma.like.findUnique({
+        where: {
+          userId_postId: {
+            userId: userId,
+            postId: postId
+          }
+        }
+      });
+
+      if (like) {
+        await prisma.like.delete({
+          where: {
+            userId_postId: {
+              userId: userId,
+              postId: postId
+            }
+          }
+        });
+      } else {
+        await prisma.like.create({
+          data: {
+            userId: userId,
+            postId: postId
+          }
+        });
+      }
+    });
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("Error handling like interaction:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+export const bookmarkPost = async (req, res, next) => {
+  const { postId } = req.params;
+  const userId = req.user.id;
+
+  try {
+    await prisma.$transaction(async (prisma) => {
+      const bookmark = await prisma.bookmark.findUnique({
+        where: {
+          userId_postId: {
+            userId: userId,
+            postId: postId
+          }
+        }
+      });
+
+      if (bookmark) {
+        await prisma.bookmark.delete({
+          where: {
+            userId_postId: {
+              userId: userId,
+              postId: postId
+            }
+          }
+        });
+      } else {
+        await prisma.bookmark.create({
+          data: {
+            userId: userId,
+            postId: postId
+          }
+        });
+      }
+    });
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("Error handling bookmark interaction:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const repostPost = async (req, res) => {
+  const { postId } = req.params;
+  const userId = req.user.id;
+
+  try {
+    await prisma.$transaction(async (prisma) => {
+      const repost = await prisma.repost.findUnique({
+        where: {
+          userId_postId: {
+            userId: userId,
+            postId: postId
+          }
+        }
+      });
+
+      if (repost) {
+        await prisma.repost.delete({
+          where: {
+            id: repost.id  // Assuming Repost model has an id field
+          }
+        });
+      } else {
+        await prisma.repost.create({
+          data: {
+            userId: userId,
+            postId: postId
+          }
+        });
+      }
+    });
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("Error handling repost interaction:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
