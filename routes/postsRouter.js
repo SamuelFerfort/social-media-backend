@@ -6,6 +6,7 @@ import {
   likePost,
   bookmarkPost,
   repostPost,
+  deletePost
 } from "../controllers/postsController.js";
 
 const router = express.Router();
@@ -17,5 +18,7 @@ router.post("/", createPost);
 router.post("/:postId/likes", likePost);
 router.post("/:postId/reposts", repostPost);
 router.post("/:postId/bookmarks", bookmarkPost);
+router.delete("/:postId/delete", deletePost);
+
 
 export default router;

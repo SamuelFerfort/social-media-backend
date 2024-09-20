@@ -152,9 +152,9 @@ export const likePost = async (req, res, next) => {
         where: {
           userId_postId: {
             userId: userId,
-            postId: postId
-          }
-        }
+            postId: postId,
+          },
+        },
       });
 
       if (like) {
@@ -162,28 +162,26 @@ export const likePost = async (req, res, next) => {
           where: {
             userId_postId: {
               userId: userId,
-              postId: postId
-            }
-          }
+              postId: postId,
+            },
+          },
         });
       } else {
         await prisma.like.create({
           data: {
             userId: userId,
-            postId: postId
-          }
+            postId: postId,
+          },
         });
       }
     });
 
     res.json({ success: true });
-
   } catch (err) {
     console.error("Error handling like interaction:", err);
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 export const bookmarkPost = async (req, res, next) => {
   const { postId } = req.params;
@@ -195,9 +193,9 @@ export const bookmarkPost = async (req, res, next) => {
         where: {
           userId_postId: {
             userId: userId,
-            postId: postId
-          }
-        }
+            postId: postId,
+          },
+        },
       });
 
       if (bookmark) {
@@ -205,22 +203,21 @@ export const bookmarkPost = async (req, res, next) => {
           where: {
             userId_postId: {
               userId: userId,
-              postId: postId
-            }
-          }
+              postId: postId,
+            },
+          },
         });
       } else {
         await prisma.bookmark.create({
           data: {
             userId: userId,
-            postId: postId
-          }
+            postId: postId,
+          },
         });
       }
     });
 
     res.json({ success: true });
-
   } catch (err) {
     console.error("Error handling bookmark interaction:", err);
     res.status(500).json({ message: "Internal server error" });
@@ -237,31 +234,63 @@ export const repostPost = async (req, res) => {
         where: {
           userId_postId: {
             userId: userId,
-            postId: postId
-          }
-        }
+            postId: postId,
+          },
+        },
       });
 
       if (repost) {
         await prisma.repost.delete({
           where: {
-            id: repost.id  // Assuming Repost model has an id field
-          }
+            id: repost.id,
+          },
         });
       } else {
         await prisma.repost.create({
           data: {
             userId: userId,
-            postId: postId
-          }
+            postId: postId,
+          },
         });
       }
     });
 
     res.json({ success: true });
-
   } catch (err) {
     console.error("Error handling repost interaction:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deletePost = async (req, res) => {
+  const { postId } = req.params;
+
+  try {
+    const post = await prisma.post.findFirst({
+      where: {
+        id: postId,
+        authorId: req.user.id,
+      },
+      include: {
+        media: true,
+      },
+    });
+
+    if (!post) {
+      return res
+        .status(404)
+        .json({ message: "Post not found or user does not own the post" });
+    }
+
+    if (post.media && post.media.length > 0) {
+      await cloudinary.uploader.destroy(post.media[0].urlPublicId);
+    }
+
+    await prisma.post.delete({ where: { id: postId } });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error deleting post:", err);
     res.status(500).json({ message: "Internal server error" });
   }
 };

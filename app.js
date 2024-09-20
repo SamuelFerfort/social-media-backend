@@ -29,6 +29,8 @@ const limiter = rateLimit({
   legacyHeaders: false,  
   message: 'Too many requests, please try again later.',
 });
+
+
 app.use("/api", limiter);
 
 import authRouter from "./routes/authRouter.js";
