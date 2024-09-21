@@ -87,14 +87,14 @@ export const createPost = [
   fileSizeLimit,
 
   async (req, res) => {
-    const { content } = req.body;
+    const { content, gif } = req.body;
     const authorId = req.user.id;
 
-    if (!content && !req.file) {
+    if (!content && !req.file && !gif) {
       return res.status(400).json({ message: "Content or image required" });
-    }
+    } 
 
-    let media, mediaPublicId;
+    let media, mediaPublicId, type;
     if (req.file) {
       try {
         const fileStr = `data:${
@@ -107,10 +107,16 @@ export const createPost = [
 
         media = result.secure_url;
         mediaPublicId = result.public_id;
+        type = "IMAGE"
       } catch (uploadError) {
         console.error("Error uploading image to Cloudinary:", uploadError);
         return res.status(500).json({ message: "Failed to upload image" });
       }
+    }
+
+    if(gif) {
+      media = gif
+      type = "GIF"
     }
 
     try {
@@ -121,7 +127,7 @@ export const createPost = [
             ? {
                 create: {
                   url: media,
-                  type: "IMAGE",
+                  type,
                   urlPublicId: mediaPublicId,
                 },
               }
@@ -282,9 +288,11 @@ export const deletePost = async (req, res) => {
         .json({ message: "Post not found or user does not own the post" });
     }
 
-    if (post.media && post.media.length > 0) {
+    if (post.media && post.media.length > 0 && post.media.type === "IMAGE") {
       await cloudinary.uploader.destroy(post.media[0].urlPublicId);
     }
+
+    
 
     await prisma.post.delete({ where: { id: postId } });
 

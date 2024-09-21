@@ -115,7 +115,7 @@ model Media {
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId String
   createdAt DateTime @default(now())
-  urlPublicId String
+  urlPublicId String?
 
 }
 
