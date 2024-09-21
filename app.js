@@ -22,7 +22,11 @@ app.use(
   })
 );
 
-const limiter = rateLimit({
+
+// TODO: rate limit
+
+
+/* const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,  
   max: 1000,  
   standardHeaders: true,  
@@ -31,7 +35,7 @@ const limiter = rateLimit({
 });
 
 
-app.use("/api", limiter);
+app.use("/api", limiter); */
 
 import authRouter from "./routes/authRouter.js";
 import postsRouter from "./routes/postsRouter.js";
