@@ -422,7 +422,7 @@ export const getPostReplies = async (req, res) => {
 
 export const getUserPostsAndReposts = async (req, res) => {
   const { handler } = req.params;
-  const { page = 1, limit = 20 } = req.query;
+  const { page = 1, limit = 10 } = req.query;
   const skip = (page - 1) * limit;
 
   try {
@@ -453,6 +453,16 @@ export const getUserPostsAndReposts = async (req, res) => {
           { authorId: user.id },
           {
             reposts: {
+              some: { userId: user.id },
+            },
+          },
+          {
+            likes: {
+              some: { userId: user.id },
+            },
+          },
+          {
+            bookmarks: {
               some: { userId: user.id },
             },
           },
@@ -532,6 +542,7 @@ export const getUserPostsAndReposts = async (req, res) => {
       user,
       posts,
       totalPages: Math.ceil(totalCount / limit),
+      totalCount,
       currentPage: Number(page),
     });
   } catch (err) {
