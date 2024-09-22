@@ -433,6 +433,7 @@ export const getUserPostsAndReposts = async (req, res) => {
         username: true,
         about: true,
         handler: true,
+        createdAt: true,
         _count: {
           select: {
             followers: true,
