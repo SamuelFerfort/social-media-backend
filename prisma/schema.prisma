@@ -22,6 +22,8 @@ model User {
   handler String @unique
   password String
   about String?
+  banner String?
+  bannerPublicId String?
   avatar String?
   avatarPublicId String?
   createdAt DateTime @default(now())
