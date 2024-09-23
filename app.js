@@ -18,13 +18,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
+    methods: ["GET", "POST", "DELETE"],
     credentials: true,
   })
 );
 
+console.log("CORS origin: ------------------->", process.env.CLIENT_URL || "http://localhost:5173");
 
 // TODO: rate limit
-
 
 /* const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,  
@@ -39,11 +40,11 @@ app.use("/api", limiter); */
 
 import authRouter from "./routes/authRouter.js";
 import postsRouter from "./routes/postsRouter.js";
-import userRouter from "./routes/userRouter.js"
+import userRouter from "./routes/userRouter.js";
 
 app.use("/api/auth", authRouter);
 app.use("/api/post", postsRouter);
-app.use("/api/user/", userRouter)
+app.use("/api/user/", userRouter);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -53,7 +54,7 @@ app.use((err, req, res, next) => {
     stack: process.env.NODE_ENV === "production" ? "🥞" : err.stack,
   });
 });
-const PORT = process.env.PORT || "3000";
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server listening on http://0.0.0.0:${PORT}`);

@@ -295,7 +295,7 @@ export const deletePost = async (req, res) => {
         .json({ message: "Post not found or user does not own the post" });
     }
 
-    if (post.media && post.media.length > 0 && post.media.type === "IMAGE") {
+    if (post.media && post.media.length > 0 && post.media[0].type === "IMAGE") {
       await cloudinary.uploader.destroy(post.media[0].urlPublicId);
     }
 
@@ -505,6 +505,9 @@ export const getUserPostsAndReposts = async (req, res) => {
           },
         },
         reposts: {
+          where: {
+            userId: req.user.id
+          },
           select: {
             userId: true,
             user: {
