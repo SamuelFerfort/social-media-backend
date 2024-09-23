@@ -67,7 +67,12 @@ export const login = async (req, res) => {
       handler: user.handler,
       avatar: user.avatar || null,
       about: user.about || null,
+      banner: user.banner,
+      avatarPublicId: user.avatarPublicId,
+      bannerPublicId: user.bannerPublicId,
     };
+
+    
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
@@ -120,6 +125,7 @@ export const getUser = async (req, res) => {
         avatar: true,
         handler: true,
         about: true,
+        banner: true,
       },
     });
     res.json(user);

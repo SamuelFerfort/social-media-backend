@@ -20,11 +20,11 @@ router.get("/:postId/replies", getPostReplies);
 router.get("/user/:handler", getUserPostsAndReposts)
 
 
-
 router.post("/", createPost);
 router.post("/:postId/likes", likePost);
 router.post("/:postId/reposts", repostPost);
 router.post("/:postId/bookmarks", bookmarkPost);
+
 
 router.delete("/:postId/delete", deletePost);
 

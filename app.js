@@ -39,9 +39,11 @@ app.use("/api", limiter); */
 
 import authRouter from "./routes/authRouter.js";
 import postsRouter from "./routes/postsRouter.js";
+import userRouter from "./routes/userRouter.js"
 
 app.use("/api/auth", authRouter);
 app.use("/api/post", postsRouter);
+app.use("/api/user/", userRouter)
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

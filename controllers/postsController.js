@@ -31,6 +31,7 @@ export const getHomePosts = async (req, res) => {
             username: true,
             avatar: true,
             handler: true,
+            banner: true,
           },
         },
         media: true,
@@ -434,6 +435,8 @@ export const getUserPostsAndReposts = async (req, res) => {
         about: true,
         handler: true,
         createdAt: true,
+        avatar: true,
+        banner: true,
         _count: {
           select: {
             followers: true,
@@ -481,6 +484,7 @@ export const getUserPostsAndReposts = async (req, res) => {
             username: true,
             avatar: true,
             handler: true,
+            banner: true,
           },
         },
         media: true,
