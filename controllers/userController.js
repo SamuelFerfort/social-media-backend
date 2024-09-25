@@ -18,7 +18,6 @@ export const editProfile = [
   async (req, res) => {
     const { username, about } = req.body;
 
-
     try {
       let avatarUrl, bannerUrl, avatarPublicId, bannerPublicId;
 
@@ -32,7 +31,6 @@ export const editProfile = [
         });
 
         if (req.user.avatarPublicId) {
-      
           await cloudinary.uploader.destroy(req.user.avatarPublicId);
         }
 
@@ -50,8 +48,6 @@ export const editProfile = [
         });
 
         if (req.user.bannerPublicId) {
-     
-
           await cloudinary.uploader.destroy(req.user.bannerPublicId);
         }
 
@@ -76,3 +72,24 @@ export const editProfile = [
     }
   },
 ];
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        NOT: { id: req.user.id },
+      },
+      select: {
+        id: true,
+        username: true,
+        handler: true,
+        avatar: true,
+      },
+    });
+
+    res.json(users);
+  } catch (error) {
+    console.error("Error getting all users:", error);
+    res.status(500).json({ error: "Failed to get users" });
+  }
+};

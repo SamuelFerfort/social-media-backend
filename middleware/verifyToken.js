@@ -2,43 +2,48 @@ import "dotenv/config";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
-export default function verifyToken(req, res, next) {
+const verifyToken = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  if (!token) return res.status(403).json({ message: "No token provided" });
 
-  jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+  if (!authHeader) {
+    console.warn("Authorization header missing");
+    return res.status(401).json({ message: "Authorization header missing" });
+  }
+
+  const tokenParts = authHeader.split(" ");
+
+  if (tokenParts.length !== 2 || tokenParts[0] !== "Bearer") {
+    console.warn("Malformed authorization header");
+    return res.status(401).json({ message: "Malformed authorization header" });
+  }
+
+  const token = tokenParts[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (!decoded || typeof decoded !== "object" || !decoded.id) {
+      console.warn("Invalid token payload");
+      return res.status(401).json({ message: "Invalid token payload" });
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        handler: true,
-        avatar: true,
-        about: true,
-        banner: true,
-        avatarPublicId: true,
-        bannerPublicId: true,
-      },
     });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    if (err) {
-      if (err.name === "TokenExpiredError") {
-        console.error("TOKEN EXPIRATION", ERR);
-        return res.status(401).json({ message: "Token expired" });
-      }
-      console.error("INVALID TOKEN", err);
-      return res.status(401).json({ message: "Invalid token" });
+      console.warn(`User not found for ID: ${decoded.id}`);
+      return res.status(401).json({ message: "User not found" });
     }
 
     req.user = user;
     next();
-  });
-}
+  } catch (error) {
+    console.error("Token verification failed:", error);
+    return res.status(403).json({ message: "Invalid or expired token" });
+  }
+};
+
+export default verifyToken;

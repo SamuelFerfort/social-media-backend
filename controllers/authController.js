@@ -16,7 +16,14 @@ const registerSchema = Joi.object({
       });
 
       if (emailExists) {
-        return helpers.error("email.unique");
+        throw new Joi.ValidationError("Custom validation error", [
+          {
+            message: "Email already in use",
+            path: ["email"],
+            type: "any.custom",
+            context: { label: "email", key: "email" },
+          },
+        ]);
       }
       return value;
     }),
@@ -31,14 +38,21 @@ const registerSchema = Joi.object({
       });
 
       if (handlerExists) {
-        return helpers.error("handler.unique");
+        throw new Joi.ValidationError("Custom validation error", [
+          {
+            message: "This handler is already in use",
+            path: ["handler"],
+            type: "any.custom",
+            context: { label: "handler", key: "handler" },
+          },
+        ]);
       }
 
       return value;
     }),
 }).messages({
-  "email.unique": "Email already in use",
-  "handler.unique": "This handler is already in use",
+  "any.custom": "{{#message}}",
+  "string.pattern.base": '{{#label}} must contain "@" symbol',
 });
 
 const loginSchema = Joi.object({
@@ -72,7 +86,6 @@ export const login = async (req, res) => {
       bannerPublicId: user.bannerPublicId,
     };
 
-    
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });
