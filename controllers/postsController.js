@@ -308,6 +308,8 @@ export const deletePost = async (req, res) => {
   }
 };
 
+
+
 export const getPostReplies = async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
   const skip = (page - 1) * limit;
@@ -409,6 +411,7 @@ export const getPostReplies = async (req, res) => {
 
     const total = await prisma.post.count({ where: { parentId: postId } });
 
+    console.log("POST", posts)
     res.json({
       parentPost,
       posts,
@@ -443,6 +446,9 @@ export const getUserPostsAndReposts = async (req, res) => {
             following: true,
           },
         },
+        followers: {
+          where: {followerId: req.user.id}
+        }
       },
     });
 
@@ -544,6 +550,9 @@ export const getUserPostsAndReposts = async (req, res) => {
         parentId: null,
       },
     });
+
+    
+    
 
     res.json({
       user,

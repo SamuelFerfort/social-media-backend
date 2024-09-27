@@ -84,6 +84,11 @@ export const getAllUsers = async (req, res) => {
         username: true,
         handler: true,
         avatar: true,
+        followers: {
+          where: {
+            followerId: req.user.id,
+          },
+        },
       },
     });
 
@@ -91,5 +96,41 @@ export const getAllUsers = async (req, res) => {
   } catch (error) {
     console.error("Error getting all users:", error);
     res.status(500).json({ error: "Failed to get users" });
+  }
+};
+
+export const toggleFollow = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const isFollowing = await prisma.follows.findFirst({
+      where: {
+        followerId: req.user.id, // The authenticated user
+        followingId: userId, // The target user
+      },
+    });
+
+    if (isFollowing) {
+      await prisma.follows.delete({
+        where: {
+          followerId_followingId: {
+            followerId: req.user.id,
+            followingId: userId,
+          },
+        },
+      });
+    } else {
+      await prisma.follows.create({
+        data: {
+          followerId: req.user.id,
+          followingId: userId,
+        },
+      });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error toggling follow:", err);
+    res.status(500).json({ error: "Failed to handle follow" });
   }
 };
