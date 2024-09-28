@@ -160,6 +160,15 @@ export const likePost = async (req, res, next) => {
   const userId = req.user.id;
 
   try {
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { authorId: true },
+    });
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
     await prisma.$transaction(async (prisma) => {
       const like = await prisma.like.findUnique({
         where: {
@@ -179,6 +188,15 @@ export const likePost = async (req, res, next) => {
             },
           },
         });
+
+        await prisma.notification.deleteMany({
+          where: {
+            userId: post.authorId,
+            type: "LIKE",
+            relatedUserId: userId,
+            postId,
+          },
+        });
       } else {
         await prisma.like.create({
           data: {
@@ -186,6 +204,18 @@ export const likePost = async (req, res, next) => {
             postId: postId,
           },
         });
+
+        if (post.authorId !== userId) {
+          await prisma.notification.create({
+            data: {
+              userId: post.authorId,
+              type: "LIKE",
+              content: `${req.user.username} liked your post`,
+              relatedUserId: userId,
+              postId: postId,
+            },
+          });
+        }
       }
     });
 
@@ -242,6 +272,16 @@ export const repostPost = async (req, res) => {
   const userId = req.user.id;
 
   try {
+
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      select: { authorId: true },
+    });
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
     await prisma.$transaction(async (prisma) => {
       const repost = await prisma.repost.findUnique({
         where: {
@@ -258,6 +298,16 @@ export const repostPost = async (req, res) => {
             id: repost.id,
           },
         });
+
+        await prisma.notification.deleteMany({
+          where: {
+            userId: post.authorId,
+            type: "REPOST",
+            relatedUserId: userId,
+            postId,
+          },
+        });
+
       } else {
         await prisma.repost.create({
           data: {
@@ -265,6 +315,17 @@ export const repostPost = async (req, res) => {
             postId: postId,
           },
         });
+        if (post.authorId !== userId) {
+          await prisma.notification.create({
+            data: {
+              userId: post.authorId,
+              type: "REPOST",
+              content: `${req.user.username} reposted your post`,
+              relatedUserId: userId,
+              postId: postId,
+            },
+          });
+        }
       }
     });
 
@@ -307,8 +368,6 @@ export const deletePost = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
 
 export const getPostReplies = async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
@@ -411,7 +470,7 @@ export const getPostReplies = async (req, res) => {
 
     const total = await prisma.post.count({ where: { parentId: postId } });
 
-    console.log("POST", posts)
+    console.log("POST", posts);
     res.json({
       parentPost,
       posts,
@@ -447,8 +506,8 @@ export const getUserPostsAndReposts = async (req, res) => {
           },
         },
         followers: {
-          where: {followerId: req.user.id}
-        }
+          where: { followerId: req.user.id },
+        },
       },
     });
 
@@ -512,7 +571,7 @@ export const getUserPostsAndReposts = async (req, res) => {
         },
         reposts: {
           where: {
-            userId: req.user.id
+            userId: req.user.id,
           },
           select: {
             userId: true,
@@ -550,9 +609,6 @@ export const getUserPostsAndReposts = async (req, res) => {
         parentId: null,
       },
     });
-
-    
-    
 
     res.json({
       user,

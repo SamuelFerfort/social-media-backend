@@ -73,6 +73,24 @@ export const editProfile = [
   },
 ];
 
+export const getNotifications = async (req, res) => {
+  try {
+    const notifications = await prisma.notification.findMany({
+      where: {
+        userId: req.user.id,
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
+
+    res.json(notifications);
+  } catch (err) {
+    console.error("Error getting notifications", err);
+    res.status(500).json({ message: "Failed to get notifications" });
+  }
+};
+
 export const getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
@@ -119,11 +137,28 @@ export const toggleFollow = async (req, res) => {
           },
         },
       });
+
+      await prisma.notification.deleteMany({
+        where: {
+          userId: userId,
+          type: "FOLLOW",
+          relatedUserId: req.user.id,
+        },
+      });
     } else {
       await prisma.follows.create({
         data: {
           followerId: req.user.id,
           followingId: userId,
+        },
+      });
+
+      await prisma.notification.create({
+        data: {
+          userId: userId,
+          type: "FOLLOW",
+          content: `${req.user.username} followed you`,
+          relatedUserId: req.user.id,
         },
       });
     }
