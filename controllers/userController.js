@@ -80,14 +80,34 @@ export const getNotifications = async (req, res) => {
         userId: req.user.id,
       },
       orderBy: {
-        createdAt: "desc"
-      }
+        createdAt: "desc",
+      },
     });
 
-    res.json(notifications);
+    const allRead = notifications.every((n) => n.isRead === true);
+    const response = { allRead, notifications };
+    res.json(response);
   } catch (err) {
     console.error("Error getting notifications", err);
     res.status(500).json({ message: "Failed to get notifications" });
+  }
+};
+
+export const markAllNotifications = async (req, res) => {
+  try {
+    await prisma.notification.updateMany({
+      where: { userId: req.user.id },
+      data: {
+        isRead: true,
+      },
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error marking all notifications as read", err);
+    res
+      .status(500)
+      .json({ message: "Error marking all notifications as read" });
   }
 };
 
