@@ -535,7 +535,6 @@ export const getUserPostsAndReposts = async (req, res) => {
             },
           },
         ],
-        parentId: null,
       },
       orderBy: {
         createdAt: "desc",
@@ -563,7 +562,8 @@ export const getUserPostsAndReposts = async (req, res) => {
         },
         likes: {
           where: {
-            userId: req.user.id,
+            userId: {in: [user.id, req.user.id]}
+
           },
           select: {
             userId: true,
@@ -571,7 +571,8 @@ export const getUserPostsAndReposts = async (req, res) => {
         },
         reposts: {
           where: {
-            userId: req.user.id,
+            userId: {in: [user.id, req.user.id]}
+
           },
           select: {
             userId: true,
@@ -587,7 +588,7 @@ export const getUserPostsAndReposts = async (req, res) => {
         },
         bookmarks: {
           where: {
-            userId: req.user.id,
+            userId: {in: [user.id, req.user.id]}
           },
           select: {
             userId: true,
@@ -595,6 +596,7 @@ export const getUserPostsAndReposts = async (req, res) => {
         },
       },
     });
+
 
     const totalCount = await prisma.post.count({
       where: {

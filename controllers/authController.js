@@ -28,7 +28,7 @@ const registerSchema = Joi.object({
       return value;
     }),
   password: Joi.string().min(8).required(),
-  username: Joi.string().required().max(40),
+  username: Joi.string().required().max(30),
   handler: Joi.string()
     .required()
     .pattern(/@/)
