@@ -47,7 +47,7 @@ npm install
 
 ### 3. **Configure Environment Variables:**
 
-```bash
+```
 
 DATABASE_URL=your_database_key
 CLOUDINARY_API_KEY=cloudinary_api_key
