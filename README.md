@@ -54,6 +54,7 @@ CLOUDINARY_API_KEY=cloudinary_api_key
 CLOUDINARY_CLOUD_NAME=cloudinary_cloud_name
 CLOUDINARY_API_SECRET=cloudinary_api_secret
 JWT_SECRET=your_jwt_secret_key
+CLIENT_URL=your_client_url
 
 ```
 
