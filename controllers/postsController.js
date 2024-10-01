@@ -272,7 +272,6 @@ export const repostPost = async (req, res) => {
   const userId = req.user.id;
 
   try {
-
     const post = await prisma.post.findUnique({
       where: { id: postId },
       select: { authorId: true },
@@ -307,7 +306,6 @@ export const repostPost = async (req, res) => {
             postId,
           },
         });
-
       } else {
         await prisma.repost.create({
           data: {
@@ -508,6 +506,9 @@ export const getUserPostsAndReposts = async (req, res) => {
         followers: {
           where: { followerId: req.user.id },
         },
+        following: {
+          where: { followingId: req.user.id },
+        },
       },
     });
 
@@ -535,6 +536,7 @@ export const getUserPostsAndReposts = async (req, res) => {
             },
           },
         ],
+        parentId: null,
       },
       orderBy: {
         createdAt: "desc",
@@ -562,8 +564,7 @@ export const getUserPostsAndReposts = async (req, res) => {
         },
         likes: {
           where: {
-            userId: {in: [user.id, req.user.id]}
-
+            userId: { in: [user.id, req.user.id] },
           },
           select: {
             userId: true,
@@ -571,8 +572,7 @@ export const getUserPostsAndReposts = async (req, res) => {
         },
         reposts: {
           where: {
-            userId: {in: [user.id, req.user.id]}
-
+            userId: { in: [user.id, req.user.id] },
           },
           select: {
             userId: true,
@@ -588,7 +588,7 @@ export const getUserPostsAndReposts = async (req, res) => {
         },
         bookmarks: {
           where: {
-            userId: {in: [user.id, req.user.id]}
+            userId: { in: [user.id, req.user.id] },
           },
           select: {
             userId: true,
@@ -596,7 +596,6 @@ export const getUserPostsAndReposts = async (req, res) => {
         },
       },
     });
-
 
     const totalCount = await prisma.post.count({
       where: {

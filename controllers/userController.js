@@ -82,6 +82,9 @@ export const getNotifications = async (req, res) => {
       orderBy: {
         createdAt: "desc",
       },
+      include: {
+        post: true
+      }
     });
 
     const allRead = notifications.every((n) => n.isRead === true);

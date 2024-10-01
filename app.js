@@ -23,7 +23,10 @@ app.use(
   })
 );
 
-console.log("CORS origin: ------------------->", process.env.CLIENT_URL || "http://localhost:5173");
+console.log(
+  "CORS origin: ------------------->",
+  process.env.CLIENT_URL || "http://localhost:5173"
+);
 
 // TODO: rate limit
 
@@ -54,8 +57,8 @@ app.use((err, req, res, next) => {
     stack: process.env.NODE_ENV === "production" ? "🥞" : err.stack,
   });
 });
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server listening on http://0.0.0.0:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
 });

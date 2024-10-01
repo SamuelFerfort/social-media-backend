@@ -56,7 +56,7 @@ model Post {
   parent Post? @relation("Replies", fields: [parentId], references: [id])
   replies Post[] @relation("Replies")
   bookmarks Bookmark[]
-
+  notifications Notification[]
 
   @@index([authorId])
   @@index([createdAt])
@@ -133,10 +133,12 @@ model Notification {
   isRead Boolean @default(false)
   createdAt DateTime @default(now())
   relatedUserId String?
+  post Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId String?
 
   @@index([userId])
-  @@index([createdAt]) 
+  @@index([createdAt])
+  @@index([postId]) 
 }
 
 
